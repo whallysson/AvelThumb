@@ -4,7 +4,7 @@
  * AvelThumb.class [ HELPER ]
  * Versão 1.0
  * Classe para imagens em miniatura
- * @copyright (c) 2016, Whallysson Avelino - (whallyssonallain@gmail.com)
+ * @copyright (c) 2017, Whallysson Avelino - (whallyssonallain@gmail.com)
  *
  * Como usar:
  * Ex.: http://seusite.com/upload/images/imagem.png?w=250&h=500&a=b&zc=2
@@ -63,7 +63,7 @@ class AvelThumb {
      */
     public function ImgCreate($Url, $MarcaDagua = null) {
         $this->MarcaDagua = ( $MarcaDagua ? $MarcaDagua : null );
-        $this->Url = $this->DocRoot . str_replace($this->UrlBase . '/', '', $Url);
+        $this->Url = $this->DocRoot . str_replace($this->UrlBase() . '/', '', $Url);
 
         $ParseUrl = parse_url($this->Url);
         $this->File['query'] = (isset($ParseUrl['query']) ? $ParseUrl['query'] : null);
@@ -82,14 +82,14 @@ class AvelThumb {
         $this->setFileName();
 
         if ($this->ImgCache()) {
-            return $this->UrlBase . '/' . $this->ImgCache(); // Retorna a imagem cacheada caso já exista
+            return $this->UrlBase() . '/' . $this->ImgCache(); // Retorna a imagem cacheada caso já exista
         } else {
             $this->Properties();
             $this->ImgSize();
 
             if (strstr($this->File["type"], 'image/')):
                 $this->UploadImage();
-                return $this->UrlBase . '/' . $this->getResult();
+                return $this->UrlBase() . '/' . $this->getResult();
             endif;
         }
     }
@@ -139,7 +139,7 @@ class AvelThumb {
                 touch(self::$BaseDir . $FileName, $time);
             }
 
-            $this->Url = $this->UrlBase . "/{$this->Folder}/{$FileName}" . (!empty($this->File['query']) ? "?{$this->File['query']}" : null );
+            $this->Url = $this->UrlBase() . "/{$this->Folder}/{$FileName}" . (!empty($this->File['query']) ? "?{$this->File['query']}" : null );
             $ParseUrl = parse_url($this->Url);
             $this->Name = substr(strrchr($ParseUrl['path'], '/'), 1);
             $this->File['ext'] = mb_strtolower(strrchr($this->Name, '.'));
