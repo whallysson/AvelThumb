@@ -2,7 +2,7 @@
 
 /**
  * AvelThumb.class [ HELPER ]
- * Versão 1.0
+ * Versão 1.2
  * Classe para imagens em miniatura
  * @copyright (c) 2017, Whallysson Avelino - (whallyssonallain@gmail.com)
  *
@@ -63,7 +63,14 @@ class AvelThumb {
      */
     public function ImgCreate($Url, $MarcaDagua = null) {
         $this->MarcaDagua = ( $MarcaDagua ? $MarcaDagua : null );
-        $this->Url = $this->DocRoot . str_replace($this->UrlBase() . '/', '', $Url);
+
+        if (strstr($Url, $this->UrlBase()) === false) {
+            $this->Url = $Url;
+        } elseif (stripos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+            $this->Url = $this->DocRoot . str_replace($this->UrlBase(), '', $Url);
+        } else {
+            $this->Url = $this->DocRoot . str_replace($this->UrlBase() . '/', '', $Url);
+        }
 
         $ParseUrl = parse_url($this->Url);
         $this->File['query'] = (isset($ParseUrl['query']) ? $ParseUrl['query'] : null);
@@ -71,7 +78,7 @@ class AvelThumb {
         $Exp = explode('.', substr(strrchr($ParseUrl['path'], '/'), 1));
         $this->Name = $Exp[0];
         $this->File['ext'] = (isset($Exp[1]) ? $Exp[1] : null);
-		
+
         // Caso a imagem não exista ele cria no imagem na pasta cache
         $this->NoImage();
 
@@ -116,14 +123,18 @@ class AvelThumb {
      * **********  PRIVATE METHODS  **********
      * ***************************************
      */
-	
-	private function UrlBase() {
-		$protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http');
-		$dominio = $_SERVER['HTTP_HOST'];
-		$url = $protocolo . '://' . $dominio;
 
-		return $url;
-	}
+    private function UrlBase() {
+        $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http');
+        $dominio = $_SERVER['HTTP_HOST'];
+        $url = $protocolo . '://' . $dominio;
+
+        if (stripos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+            return BASE;
+        } else {
+            return $url;
+        }
+    }
 
     // Cria no imagem na pasta cache
     private function NoImage() {
@@ -152,8 +163,8 @@ class AvelThumb {
         $FileName = Check::Name($this->Name) . ".{$this->File['ext']}";
         $this->Name = mb_strtolower($FileName);
     }
-    
-    private function existeFileCache(){
+
+    private function existeFileCache() {
         if (!file_exists(self::$BaseDir . 'cacheTime.txt')) {
             $SiteMapCheck = fopen(self::$BaseDir . 'cacheTime.txt', "w+");
             fwrite($SiteMapCheck, date('Y-m-d'));
@@ -164,9 +175,9 @@ class AvelThumb {
     // Apaga as imagens em cache 
     private function CleanCache() {
         $this->existeFileCache();
-        
+
         $CacheTime = self::$BaseDir . 'cacheTime.txt';
-        if (filemtime($CacheTime) < (time() - $this->Time)) { 
+        if (filemtime($CacheTime) < (time() - $this->Time)) {
             $files = glob(self::$BaseDir . '*');
             if ($files) {
                 $timeAgo = time() - $this->Time;
@@ -350,8 +361,8 @@ class AvelThumb {
             } else {
                 imagecopyresampled($NewImage, $this->Image, 0, 0, 0, 0, $ImageX, $ImageH, $x, $y);
             }
-            
-            
+
+
             // Aplicado Marca D'agua
             if (!empty($this->MarcaDagua)):
                 $marca = imagecreatefrompng($this->MarcaDagua);
